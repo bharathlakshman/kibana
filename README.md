@@ -1,8 +1,4 @@
-# Kibana
-
-__NOTE__: You have reached the Kibana 3 repository.
-Kibana 3 is a completely new version of Kibana written entirely in HTML and Javascript. You can find
-the Kibana 2 repository at [https://github.com/rashidkpc/Kibana](https://github.com/rashidkpc/Kibana)
+# Kobe is forked from Kibana 3.1.3
 
 More information about Kibana 3 can be found at [http://www.elasticsearch.org/overview/kibana/](http://www.elasticsearch.org/overview/kibana/)
 
