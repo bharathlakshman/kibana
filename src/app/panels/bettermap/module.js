@@ -27,6 +27,7 @@ define([
 
   'css!./module.css',
   'css!./leaflet/leaflet.css',
+  'css!./leaflet/leaflet-d3.css',
   'css!./leaflet/plugins.css'
 ],
 function (angular, app, _, L, localRequire) {
@@ -247,15 +248,14 @@ function (angular, app, _, L, localRequire) {
               map = L.map(scope.$id, {
                 scrollWheelZoom: false,
                 center: [12.9667, 77.5667],
-                zoom: 10
+                zoom: 4
               });
 
               // This could be made configurable?
-              L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
-                attribution: 'Data, imagery and map information provided by MapQuest, '+
-                  'OpenStreetMap <http://www.openstreetmap.org/copyright> and contributors, ODbL',
+              L.tileLayer(scope.panel.tileServerUrl, {
+                attribution: 'OSM',
                 maxZoom: 18,
-                minZoom: 2
+                minZoom: 4
               }).addTo(map);
               layerGroup = new L.MarkerClusterGroup({maxClusterRadius:30});
               /* Adding blip */
@@ -266,14 +266,14 @@ function (angular, app, _, L, localRequire) {
                   lat: function(d){
                       return d[1];
                   },
-                  duration: 800
+                  duration: 2000
               };
 
               var pingLayer = L.pingLayer(options).addTo(map);
-              pingLayer.radiusScale().range([2, 18]);
-              pingLayer.opacityScale().range([1, 0]);
+              pingLayer.radiusScale().range([2, 12]);
+              pingLayer.opacityScale().range([1, 0]); // This makes the difference
               window.pingLayer = pingLayer;
-              /* Blip End*/
+              /* Blip End */
             } else {
               layerGroup.clearLayers();
             }
@@ -292,7 +292,7 @@ function (angular, app, _, L, localRequire) {
 
             layerGroup.addTo(map);
 
-            map.fitBounds(_.pluck(scope.data,'coordinates'));
+            //map.fitBounds(_.pluck(scope.data,'coordinates'));
           });
         }
       }
