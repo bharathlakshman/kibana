@@ -1,5 +1,9 @@
 # Kobe is forked from Kibana 3.1.3
 
+Have added following features.
+1. Multi-field support on bettermap tooltip(Use comma seperated field names in "Tooltip Field" during configuration of bettermap)
+2. Blip/Ping visualisation on bettermap(Color, duration and radius are configurable but not through the panel for now, it needs code edit)
+
 More information about Kibana 3 can be found at [http://www.elasticsearch.org/overview/kibana/](http://www.elasticsearch.org/overview/kibana/)
 
 ## Overview
