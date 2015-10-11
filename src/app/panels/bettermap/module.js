@@ -141,13 +141,20 @@ function (angular, app, _, L, localRequire) {
         _.each(queries,function(q) {
           boolQuery = boolQuery.should(querySrv.toEjsObj(q));
         });
-
+        
+        var fieldsArray = [$scope.panel.field];
+        var tooltipArray = $scope.panel.tooltip.split(',');
+        for (var i = 0; i < tooltipArray.length; i++) {
+          tooltipArray[i] = tooltipArray[i].trim();
+        };
+        fieldsArray = fieldsArray.concat(tooltipArray);
+        
         var request = $scope.ejs.Request().indices(dashboard.indices[_segment])
           .query($scope.ejs.FilteredQuery(
             boolQuery,
             filterSrv.getBoolFilter(filterSrv.ids()).must($scope.ejs.ExistsFilter($scope.panel.field))
           ))
-          .fields([$scope.panel.field,$scope.panel.tooltip])
+          .fields(fieldsArray)
           .size($scope.panel.size);
 
         if(!_.isNull(timeField)) {
@@ -179,9 +186,13 @@ function (angular, app, _, L, localRequire) {
 
             // Keep only what we need for the set
             $scope.data = $scope.data.slice(0,$scope.panel.size).concat(_.map(results.hits.hits, function(hit) {
+              var tooltipHTML = "";
+              for(var i = 0; i< tooltipArray.length; i++) {
+                tooltipHTML += hit.fields[tooltipArray[i]] + "</br>";
+              }
               return {
                 coordinates : new L.LatLng(hit.fields[$scope.panel.field][1],hit.fields[$scope.panel.field][0]),
-                tooltip : hit.fields[$scope.panel.tooltip]
+                tooltip : tooltipHTML
               };
             }));
 
@@ -229,13 +240,13 @@ function (angular, app, _, L, localRequire) {
         function render_panel() {
           elem.css({height:scope.panel.height||scope.row.height});
 
-          scope.require(['./leaflet/plugins'], function () {
+          scope.require(['./leaflet/plugins', './d3/d3.v3.min', './leaflet/leaflet-d3'], function () {
             scope.panelMeta.loading = false;
             L.Icon.Default.imagePath = 'app/panels/bettermap/leaflet/images';
             if(_.isUndefined(map)) {
               map = L.map(scope.$id, {
                 scrollWheelZoom: false,
-                center: [40, -86],
+                center: [12.9667, 77.5667],
                 zoom: 10
               });
 
@@ -247,6 +258,22 @@ function (angular, app, _, L, localRequire) {
                 minZoom: 2
               }).addTo(map);
               layerGroup = new L.MarkerClusterGroup({maxClusterRadius:30});
+              /* Adding blip */
+              var options = {
+                  lng: function(d){
+                      return d[0];
+                  },
+                  lat: function(d){
+                      return d[1];
+                  },
+                  duration: 800
+              };
+
+              var pingLayer = L.pingLayer(options).addTo(map);
+              pingLayer.radiusScale().range([2, 18]);
+              pingLayer.opacityScale().range([1, 0]);
+              window.pingLayer = pingLayer;
+              /* Blip End*/
             } else {
               layerGroup.clearLayers();
             }
