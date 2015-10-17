@@ -108,15 +108,10 @@ function (angular, app, _, L, localRequire, kbn) {
         $scope.get_data();
       });
       $scope.get_data();
-      /*
-      window.setInterval(function(){
-        $scope.poll_for_data();
-      }, 5000); */
     };
-
+    
     $scope.poll_for_data = function(segment_2,query_id_2) {
       $scope.require(['./leaflet/plugins'], function () {
-        console.log('poll called');
         $scope.panel.error =  false;
         var _segment_2 = _.isUndefined(segment_2) ? 0 : segment_2;
 
@@ -158,7 +153,7 @@ function (angular, app, _, L, localRequire, kbn) {
             var _f = ejs.RangeFilter(filter.field).from(kbn.parseDate(filter.from).valueOf());
             _f = _f.to(kbn.parseDate(filter.to).valueOf());
             bool.must(_f);
-            return bool; 
+            return bool;
           }
 
           var request = $scope.ejs.Request().indices(dashboard.indices[_segment_2])
@@ -177,7 +172,6 @@ function (angular, app, _, L, localRequire, kbn) {
 
           // Populate scope when we have results
           results.then(function(results) {
-            console.log('then called');
             $scope.panelMeta.loading = false;
 
             if(_segment_2 === 0) {
@@ -367,7 +361,6 @@ function (angular, app, _, L, localRequire, kbn) {
 
         function render_panel() {
           elem.css({height:scope.panel.height||scope.row.height});
-
           scope.require(['./leaflet/plugins', './d3/d3.v3.min', './leaflet/leaflet-d3'], function () {
             scope.panelMeta.loading = false;
             L.Icon.Default.imagePath = 'app/panels/bettermap/leaflet/images';
@@ -401,12 +394,7 @@ function (angular, app, _, L, localRequire, kbn) {
               pingLayer.opacityScale().range([1, 0]); // This makes the difference
               scope.pingLayer = pingLayer;
               
-              /*
-              window.setInterval(function(){
-                scope.poll_for_data();
-              }, 3000); */
               scope.poll_for_data(); //should be called every few(equal to duration of animation/poll duration) seconds 
-              //window.temp = scope;
               /* Blip End */
             } else {
               layerGroup.clearLayers();
