@@ -109,8 +109,10 @@ function(angular, app, _, L, localRequire, kbn) {
             }
             );
             $scope.get_data();
+        };
+        $scope.random = function (min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
-        ;
         
         $scope.poll_for_data = function(segment_2, query_id_2) {
             $scope.require(['./leaflet/plugins'], function() {
@@ -130,14 +132,7 @@ function(angular, app, _, L, localRequire, kbn) {
                 if (!_.isUndefined(isPolled) && isPolled) {
                     var poll_duration = $scope.panel.poll_duration;
                     
-                    var timeField = _.uniq(_.pluck(filterSrv.getByType('time'), 'field'));
-                    if (timeField.length > 1) {
-                        $scope.panel.error = "Time field must be consistent amongst time filters";
-                    } else if (timeField.length === 0) {
-                        timeField = null ;
-                    } else {
-                        timeField = timeField[0];
-                    }
+                    var timeField = window.kibana.timefield;
                     
                     var poll_filter = getBoolFilterForPoll(poll_duration);
                     
@@ -204,33 +199,31 @@ function(angular, app, _, L, localRequire, kbn) {
                             $scope.poll_for_data(_segment_2 + 1, $scope.query_id_2);
                         }
                         
-                        var poll_duration_in_seconds = getPollDurationInSeconds(poll_duration);
+                        var poll_duration_in_milliseconds = getPollDurationInMilliSeconds(poll_duration);
                         
-                        function getPollDurationInSeconds(poll_duration) {
+                        function getPollDurationInMilliSeconds(poll_duration) {
                             function endsWith(str, suffix) {
                                 return str.indexOf(suffix, str.length - suffix.length) !== -1;
                             }
-                            var valueInSeconds = 2000;
+                            var valueInMilliSeconds = 2000;
                             if (endsWith(poll_duration, 's')) {
-                                valueInSeconds = poll_duration.slice(0, -1);
+                                valueInMilliSeconds = poll_duration.slice(0, -1) * 1000;
                             } else if (endsWith(poll_duration, 'm')) {
-                                valueInSeconds = poll_duration.slice(0, -1) * 60;
+                                valueInMilliSeconds = poll_duration.slice(0, -1) * 60 * 1000;
                             } else if (endsWith(poll_duration, 'h')) {
-                                valueInSeconds = poll_duration.slice(0, -1) * 60 * 60;
+                                valueInMilliSeconds = poll_duration.slice(0, -1) * 60 * 60 * 1000;
                             } else if (endsWith(poll_duration, 'd')) {
-                                valueInSeconds = poll_duration.slice(0, -1) * 60 * 60 * 24;
+                                valueInMilliSeconds = poll_duration.slice(0, -1) * 60 * 60 * 24 * 1000;
                             } else {
                             //Unsupported parameter - default to seconds
                             }
-                            return valueInSeconds;
+                            return valueInMilliSeconds;
                         }
-                        
                         
                         window.setTimeout(function() {
                             $scope.poll_for_data();
                         }
-                        , poll_duration_in_seconds);
-                        //2000);//poll_duration_in_seconds); // Temp change for demo
+                        , $scope.random(2,5)*1000);//poll_duration_in_milliseconds); // Remove during production
                     }
                     );
                 }
@@ -320,12 +313,13 @@ function(angular, app, _, L, localRequire, kbn) {
                         // Keep only what we need for the set
                         $scope.data = $scope.data.slice(0, $scope.panel.size).concat(_.map(results.hits.hits, function(hit) {
                             var tooltipHTML = "";
-                            for (var i = 0; i < tooltipArray.length; i++) {
+                            for (var i = 0; i < tooltipArray.length && i < 2; i++) {
                                 tooltipHTML += hit.fields[tooltipArray[i]] + "</br>";
                             }
                             return {
                                 coordinates: new L.LatLng(hit.fields[$scope.panel.field][1],hit.fields[$scope.panel.field][0]),
-                                tooltip: tooltipHTML
+                                tooltip: tooltipHTML,
+                                popup: hit.fields
                             };
                         }
                         ));
@@ -428,10 +422,40 @@ function(angular, app, _, L, localRequire, kbn) {
                         var markerList = [];
                         
                         _.each(scope.data, function(p) {
+                            var greenIcon = L.icon({
+                                iconUrl: 'img/marker/apparel/' + scope.random(1, 13) + '.png',
+                                iconSize: [32, 37],
+                                iconAnchor: [16, 37],
+                            });
+                            var myMarker = L.marker(p.coordinates, {
+                                icon: greenIcon
+                            });
+                            var popupHtml = '<div class="custom-popup"><table>';
+                            for (var key in p.popup) {
+                                popupHtml += '<tr><td>' + capitalizeFirstLetter(key) + '</td><td>' + capitalizeFirstLetter(p.popup[key]) + '</tr>';
+                            }
+                            popupHtml += '<tr><td><div><div></td><td><div style="color: blue;text-decoration: underline;">More Details<div></td></tr>';
+                            popupHtml += '</table></div>';
+                            myMarker.bindPopup(popupHtml);
                             if (!_.isUndefined(p.tooltip) && p.tooltip !== '') {
-                                markerList.push(L.marker(p.coordinates).bindLabel(_.isArray(p.tooltip) ? p.tooltip[0] : p.tooltip));
+                                markerList.push(myMarker.bindLabel(_.isArray(p.tooltip) ? p.tooltip[0] : p.tooltip));
                             } else {
-                                markerList.push(L.marker(p.coordinates));
+                                markerList.push(myMarker);
+                            }
+                            /**
+                             * Returns a random number between min (inclusive) and max (exclusive)
+                             */
+                            
+                            function capitalizeFirstLetter(string) {
+                                if (typeof string === 'string') {
+                                    return string.charAt(0).toUpperCase() + string.slice(1);
+                                } else {
+                                    return string;
+                                }
+                            }
+                            function OpenInNewTab(url) {
+                                var win = window.open(url, '_blank');
+                                win.focus();
                             }
                         }
                         );

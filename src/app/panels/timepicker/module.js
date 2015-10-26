@@ -52,7 +52,8 @@ function (angular, app, _, moment, kbn) {
     });
 
     $scope.filterSrv = filterSrv;
-
+    window.kibana = {};
+    window.kibana['timefield'] = $scope.panel.timefield;
     // ng-pattern regexs
     $scope.patterns = {
       date: /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/,
