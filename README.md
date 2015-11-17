@@ -1,4 +1,4 @@
-# Kobe is forked from Kibana 3.1.3
+# Shibana is forked from Kibana 3.1.3
 
 Have added following features.
 1. Multi-field support on bettermap tooltip(Use comma seperated field names in "Tooltip Field" during configuration of bettermap)
@@ -69,4 +69,4 @@ If you have questions or comments the best place to reach me is #logstash or #el
 
 Please see [CONTRIBUTING.md](https://github.com/elasticsearch/kibana/blob/master/CONTRIBUTING.md). 
 If you have a bugfix or new feature that you would like to contribute to Kibana, **please find or open an issue 
-about it first.** 
+about it first.**
