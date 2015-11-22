@@ -449,7 +449,7 @@ function(angular, app, _, L, localRequire, kbn) {
                             }
 
                             layerGroup = new L.MarkerClusterGroup({
-                                singleMarkerMode: false, // Remove to show markers when cluster size is one
+                                singleMarkerMode: true, // Remove to show markers when cluster size is one
                                 maxClusterRadius: scope.panel.clusterRadius,
                                 iconCreateFunction: function (t) {
                                     var e = t.getChildCount(), i = " marker-cluster-";
@@ -463,9 +463,11 @@ function(angular, app, _, L, localRequire, kbn) {
                                     var r = scope.hexToRgb(clusterColor).r,
                                     g = scope.hexToRgb(clusterColor).g,
                                     b = scope.hexToRgb(clusterColor).b;
-                                    return i += markerType,
+                                    var isMarkerSizeEnabled = scope.panel.viz_type == 'cluster_size'?true:false;
+                                    
+                                    return isMarkerSizeEnabled? i += markerType : "",
                                     new L.DivIcon({
-                                        html: "<div style='background-color: rgba(" + r + ", " + g + ", " + b + ", " + 0.7 + ")'><span>" + e + "</span></div>",
+                                        html: "<div style='background-color: rgba(" + r + ", " + g + ", " + b + ", " + 0.65 + ")'><span>" + e + "</span></div>",
                                         className: "marker-cluster" + i,
                                         iconSize: new L.Point(40,40),
                                         backgroundColor: 'rgba(' + r + ', ' + g + ', ' + b + ', ' + 0.6 + ')'

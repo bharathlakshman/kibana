@@ -3,28 +3,73 @@
   color: #333;
 }
 
-/*
+
 .marker-cluster-s {
-    background-color: rgba(181, 226, 140, 0.6);
+    margin-left: -10px !important;
+    margin-top: -10px !important;
+    width: 20px !important;
+    height: 20px !important;
+    /* transform: translate3d(591px, 177px, 0px) !important; */
+    /* z-index: 177 !important; */
 }
 
 .marker-cluster-s div {
-    background-color: rgba(110, 204, 57, 0.6);
+    width: 15px !important;
+    height: 15px !important;
+    margin-left: 3px !important;
+    margin-top: 3px !important;
+    text-align: center !important;
+    border-radius: 10px !important;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif !important;
 }
 
 .marker-cluster-m {
-    background-color: rgba(241, 211, 87, 0.6);
+    margin-left: -20px !important;
+    margin-top: -20px !important;
+    width: 40px !important;
+    height: 40px !important;
+    /* transform: translate3d(591px, 177px, 0px) !important; */
+    /* z-index: 177 !important; */
 }
 
 .marker-cluster-m div {
-    background-color: rgba(240, 194, 12, 0.6);
+    width: 30px !important;
+    height: 30px !important;
+    margin-left: 5px !important;
+    margin-top: 5px !important;
+    text-align: center !important;
+    border-radius: 15px !important;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif !important;
 }
 
 .marker-cluster-l {
-    background-color: rgba(253, 156, 115, 0.6);
+    margin-left: -30px !important;
+    margin-top: -30px !important;
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 30px !important;
+    /* transform: translate3d(591px, 177px, 0px) !important; */
+    /* z-index: 177 !important; */
 }
 
 .marker-cluster-l div {
-    background-color: rgba(241, 128, 23, 0.6);
+    width: 45px !important;
+    height: 45px !important;
+    margin-left: 8px !important;
+    margin-top: 8px !important;
+    text-align: center !important;
+    border-radius: 25px !important;
+    font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif !important;
 }
-*/
+
+.marker-cluster-s span {
+    line-height: 15px !important;
+}
+
+.marker-cluster-m span {
+    line-height: 30px !important;
+}
+
+.marker-cluster-l span {
+    line-height: 45px !important;
+}
