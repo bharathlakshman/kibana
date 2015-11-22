@@ -109,37 +109,38 @@ function(angular, app, _, L, localRequire, kbn) {
             }
             );
             $scope.get_data();
-        };
-        $scope.random = function (min, max) {
+        }
+        ;
+        $scope.random = function(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
         $scope.getMarkerSize = function(panel, value) {
-                if($scope.between(value, panel.cc.small_range_min, panel.cc.small_range_max)) {
-                    return 's';
-                } else if($scope.between(value, panel.cc.medium_range_min, panel.cc.medium_range_max)) {
-                    return 'm';
-                } else if($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
-                    return 'l';
-                }
+            if ($scope.between(value, panel.cc.small_range_min, panel.cc.small_range_max)) {
+                return 's';
+            } else if ($scope.between(value, panel.cc.medium_range_min, panel.cc.medium_range_max)) {
+                return 'm';
+            } else if ($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
+                return 'l';
+            }
         }
         $scope.getMarkerColor = function(panel, value) {
-                if($scope.between(value, panel.cc.small_range_min, panel.cc.small_range_max)) {
-                   return panel.cc.small;
-                } else if($scope.between(value, panel.cc.medium_range_min, panel.cc.medium_range_max)) {
-                    return panel.cc.medium;
-                } else if($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
-                    return panel.cc.large;
-                }
+            if ($scope.between(value, panel.cc.small_range_min, panel.cc.small_range_max)) {
+                return panel.cc.small;
+            } else if ($scope.between(value, panel.cc.medium_range_min, panel.cc.medium_range_max)) {
+                return panel.cc.medium;
+            } else if ($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
+                return panel.cc.large;
+            }
         }
         $scope.between = function(x, min, max) {
-                return x >= min && x <= max;
+            return x >= min && x <= max;
         }
         $scope.setupMarkerColor = function(panel) {
-                var element = document.querySelectorAll(".marker-cluster-s");
-                var r, g, b;
-                for (var i = 0; i < element.length; i++) {
-                        element[i].style.backgroundcolor = 'rgba(' + 255 + ',' + 0 + ',' + 0 + ',' + 0.6 + ')';
-                }
+            var element = document.querySelectorAll(".marker-cluster-s");
+            var r, g, b;
+            for (var i = 0; i < element.length; i++) {
+                element[i].style.backgroundcolor = 'rgba(' + 255 + ',' + 0 + ',' + 0 + ',' + 0.6 + ')';
+            }
         }
         $scope.hexToRgb = function(hex) {
             var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -147,7 +148,7 @@ function(angular, app, _, L, localRequire, kbn) {
                 r: parseInt(result[1], 16),
                 g: parseInt(result[2], 16),
                 b: parseInt(result[3], 16)
-            } : null;
+            } : null ;
         }
         
         $scope.poll_for_data = function(segment_2, query_id_2) {
@@ -259,7 +260,8 @@ function(angular, app, _, L, localRequire, kbn) {
                         window.setTimeout(function() {
                             $scope.poll_for_data();
                         }
-                        , $scope.random(2,5)*1000);//poll_duration_in_milliseconds); // Remove during production
+                        , $scope.random(2, 5) * 1000);
+                        //poll_duration_in_milliseconds); // Remove during production
                     }
                     );
                 }
@@ -310,7 +312,7 @@ function(angular, app, _, L, localRequire, kbn) {
                 }
                 ;
                 fieldsArray = fieldsArray.concat(tooltipArray);
-                if(!_.isUndefined($scope.panel.parameter)) {
+                if (!_.isUndefined($scope.panel.parameter)) {
                     fieldsArray = fieldsArray.concat($scope.panel.parameter);
                 }
                 var request = $scope.ejs.Request().indices(dashboard.indices[_segment])
@@ -352,24 +354,37 @@ function(angular, app, _, L, localRequire, kbn) {
                         $scope.data = $scope.data.slice(0, $scope.panel.size).concat(_.map(results.hits.hits, function(hit) {
                             var tooltipHTML = "";
                             for (var i = 0; i < tooltipArray.length && i < 2; i++) {
-                                if(!_.isUndefined(hit.fields[tooltipArray[i]])) {
-                                    tooltipHTML += hit.fields[tooltipArray[i]] + "</br>";       
+                                if (!_.isUndefined(hit.fields[tooltipArray[i]])) {
+                                    tooltipHTML += hit.fields[tooltipArray[i]] + "</br>";
                                 }
                             }
-                            var mColor = "blue", mSize = 's'; // Defaults
-                            if(!_.isUndefined($scope.panel.parameter) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
-                                    mColor = $scope.getMarkerColor($scope.panel, hit.fields[$scope.panel.parameter][0]);
+                            // Defaults
+                            var mColor = "#48D1CC"
+                              , mSize = 's';
+
+                            if (!_.isUndefined($scope.panel.viz_type) && $scope.panel.viz_type === 'heatmap') {
+                                // If cluster size is not set, return default size i.e small.
+                                if (!_.isUndefined($scope.panel.parameter) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
+                                    var value = hit.fields[$scope.panel.parameter][0];
+                                    mSize = $scope.getMarkerSize($scope.panel, value);
+                                }
                             }
                             
-                            if(!_.isUndefined($scope.panel.viz_type) && $scope.panel.viz_type === 'cluster_size') { // If cluster size is not set, return default size i.e small.
-                                    if(!_.isUndefined($scope.panel.parameter) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
-                                        var value = hit.fields[$scope.panel.parameter][0];
-                                        mSize = $scope.getMarkerSize($scope.panel, value);   
-                                    }
+                            if (!_.isUndefined($scope.panel.parameter) && !_.isUndefined($scope.panel.cc) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
+                                mColor = $scope.getMarkerColor($scope.panel, hit.fields[$scope.panel.parameter][0]);
                             }
-
+                            
+                            if (!_.isUndefined($scope.panel.viz_type) && $scope.panel.viz_type === 'cluster_size') {
+                                // If cluster size is not set, return default size i.e small.
+                                if (!_.isUndefined($scope.panel.parameter) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
+                                    var value = hit.fields[$scope.panel.parameter][0];
+                                    mSize = $scope.getMarkerSize($scope.panel, value);
+                                }
+                            }
+                            
                             return {
-                                coordinates: new L.LatLng(hit.fields[$scope.panel.field][0].split(',')[1], hit.fields[$scope.panel.field][0].split(',')[0]), // TODO: Flip coordinates incase of lat,lon. Currently supporting lon, lat
+                                coordinates: new L.LatLng(hit.fields[$scope.panel.field][0].split(',')[1],hit.fields[$scope.panel.field][0].split(',')[0]),
+                                // TODO: Flip coordinates incase of lat,lon. Currently supporting lon, lat
                                 tooltip: tooltipHTML,
                                 popup: hit.fields,
                                 color: mColor,
@@ -430,126 +445,173 @@ function(angular, app, _, L, localRequire, kbn) {
                     elem.css({
                         height: scope.panel.height || scope.row.height
                     });
-                    scope.require(['./leaflet/plugins', './leaflet/Leaflet.MakiMarkers', './d3/d3.v3.min', './leaflet/leaflet-d3'], function() {
+                    scope.require(['./leaflet/plugins', './leaflet/Leaflet.MakiMarkers', './d3/d3.v3.min', './leaflet/leaflet-d3', './leaflet/leaflet-heat'], function() {
                         scope.panelMeta.loading = false;
-                        L.Icon.Default.imagePath = 'app/panels/bettermap/leaflet/images';
-                        if (_.isUndefined(map)) {
-                            map = L.map(scope.$id, {
-                                scrollWheelZoom: false,
-                                center: [22.917923, 77.519531],
-                                zoom: 5
-                            });
-                            
-                            // This could be made configurable?
-                            L.tileLayer(scope.panel.tileServerUrl, {
-                                attribution: 'OSM'
-                            }).addTo(map);
-                            if(_.isUndefined(scope.panel.clusterRadius)) {
-                                scope.panel.clusterRadius = 30;
-                            }
+                        if (scope.panel.viz_type === 'heatmap') {
+                            if (_.isUndefined(map)) {
+                                map = L.map(scope.$id, {
+                                    scrollWheelZoom: false,
+                                    center: [22.917923, 77.519531],
+                                    zoom: 5
+                                });
+                                
+                                // This could be made configurable?
+                                L.tileLayer(scope.panel.tileServerUrl, {
+                                    attribution: 'OSM'
+                                }).addTo(map);
+                                
+                                var lowHeat = L.heatLayer([], {
+                                    radius : scope.panel.hmap.radius , // default value
+                                    blur : scope.panel.hmap.blur, // default value
+                                    gradient : JSON.parse(scope.panel.cc.small)//{0.2: 'blue', 0.3: 'lime', 0.65: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
+                                }).addTo(map);
 
-                            layerGroup = new L.MarkerClusterGroup({
-                                singleMarkerMode: true, // Remove to show markers when cluster size is one
-                                maxClusterRadius: scope.panel.clusterRadius,
-                                iconCreateFunction: function (t) {
-                                    var e = t.getChildCount(), i = " marker-cluster-";
-                                    var total = 0, average = 0;
-                                    for(var index = 0; index < t.getAllChildMarkers().length; index++) {
-                                            total += t.getAllChildMarkers()[index].options.alt;
+                                var mediumHeat = L.heatLayer([], {
+                                    radius : scope.panel.hmap.radius , // default value
+                                    blur : scope.panel.hmap.blur, // default value
+                                    gradient : JSON.parse(scope.panel.cc.medium)//{0.4: 'blue', 0.6: 'lime', 0.75: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
+                                }).addTo(map);
+                                
+                                var highHeat = L.heatLayer([], {
+                                    radius : scope.panel.hmap.radius , // default value
+                                    blur : scope.panel.hmap.blur, // default value
+                                    gradient : JSON.parse(scope.panel.cc.large)//{0.6: 'blue', 0.8: 'lime', 0.95: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
+                                }).addTo(map);
+
+                                _.each(scope.data, function(p) {
+                                    //Check average value and add to heat map
+                                    if(p.size === 's') {
+                                        lowHeat.addLatLng(p.coordinates);
+                                    } else if(p.size === 'm') {
+                                        mediumHeat.addLatLng(p.coordinates);
+                                    } else {
+                                        highHeat.addLatLng(p.coordinates);
                                     }
-                                    average = total / t.getChildCount();
-                                    var clusterColor = scope.getMarkerColor(scope.panel, average);
-                                    var markerType = scope.getMarkerSize(scope.panel, average);
-                                    var r = scope.hexToRgb(clusterColor).r,
-                                    g = scope.hexToRgb(clusterColor).g,
-                                    b = scope.hexToRgb(clusterColor).b;
-                                    var isMarkerSizeEnabled = scope.panel.viz_type == 'cluster_size'?true:false;
-                                    
-                                    return isMarkerSizeEnabled? i += markerType : "",
-                                    new L.DivIcon({
-                                        html: "<div style='background-color: rgba(" + r + ", " + g + ", " + b + ", " + 0.65 + ")'><span>" + e + "</span></div>",
-                                        className: "marker-cluster" + i,
-                                        iconSize: new L.Point(40,40),
-                                        backgroundColor: 'rgba(' + r + ', ' + g + ', ' + b + ', ' + 0.6 + ')'
-                                    })
-                                }
-                            });
-                            /* Adding blip */
-                            var options = {
-                                lng: function(d) {
-                                    return d[0];
-                                },
-                                lat: function(d) {
-                                    return d[1];
-                                },
-                                duration: 2000
-                            };
-                            
-                            var pingLayer = L.pingLayer(options).addTo(map);
-                            pingLayer.radiusScale().range([2, 12]);
-                            pingLayer.opacityScale().range([1, 0]);
-                            // This makes the difference
-                            scope.pingLayer = pingLayer;
-                            
-                            scope.poll_for_data();
-                            //should be called every few(equal to duration of animation/poll duration) seconds 
-                            /* Blip End */
-                        } else {
-                            layerGroup.clearLayers();
-                        }
-                        
-                        var markerList = [];
-                        
-                        _.each(scope.data, function(p) {
-                            var icon = L.MakiMarkers.icon({
-                                icon: "circle",
-                                color: p.color,
-                                size:  p.size
-                            });
-                            /*var greenIcon = L.icon({
-                                iconUrl: 'img/marker/red.png',
-                                iconSize: [16, 16],
-                                iconAnchor: [8, 8],
-                            });*/
-                            var myMarker = L.marker(p.coordinates, {
-                                icon: icon,
-                                alt: p.popup[scope.panel.parameter][0] !== undefined? p.popup[scope.panel.parameter][0] : ""
-                            });
-                            var popupHtml = '<div class="custom-popup"><table>';
-                            for (var key in p.popup) {
-                                popupHtml += '<tr><td>' + capitalizeFirstLetter(key) + '</td><td>' + capitalizeFirstLetter(p.popup[key]) + '</tr>';
-                            }
-                            popupHtml += '<tr><td><div><div></td><td><div style="color: blue;text-decoration: underline;">More Details<div></td></tr>';
-                            popupHtml += '</table></div>';
-                            myMarker.bindPopup(popupHtml);
-                            if (!_.isUndefined(p.tooltip) && p.tooltip !== '') {
-                                markerList.push(myMarker.bindLabel(_.isArray(p.tooltip) ? p.tooltip[0] : p.tooltip));
+                                });
                             } else {
-                                markerList.push(myMarker);
+                                layerGroup.clearLayers();
                             }
-                            /**
-                             * Returns a random number between min (inclusive) and max (exclusive)
-                             */
-                            
-                            function capitalizeFirstLetter(string) {
-                                if (typeof string === 'string') {
-                                    return string.charAt(0).toUpperCase() + string.slice(1);
-                                } else {
-                                    return string;
+                        } else {
+                            var markerList = [];
+                            L.Icon.Default.imagePath = 'app/panels/bettermap/leaflet/images';
+                            if (_.isUndefined(map)) {
+                                map = L.map(scope.$id, {
+                                    scrollWheelZoom: false,
+                                    center: [22.917923, 77.519531],
+                                    zoom: 5
+                                });
+                                
+                                // This could be made configurable?
+                                L.tileLayer(scope.panel.tileServerUrl, {
+                                    attribution: 'OSM'
+                                }).addTo(map);
+                                
+                                if (_.isUndefined(scope.panel.clusterRadius)) {
+                                    scope.panel.clusterRadius = 30;
                                 }
+                                
+                                layerGroup = new L.MarkerClusterGroup({
+                                    singleMarkerMode: true,
+                                    // Remove to show markers when cluster size is one
+                                    maxClusterRadius: scope.panel.clusterRadius,
+                                    iconCreateFunction: function(t) {
+                                        var e = t.getChildCount()
+                                          , i = " marker-cluster-";
+                                        var total = 0
+                                          , average = 0;
+                                        for (var index = 0; index < t.getAllChildMarkers().length; index++) {
+                                            total += t.getAllChildMarkers()[index].options.alt;
+                                        }
+                                        average = total / t.getChildCount();
+                                        var clusterColor = scope.getMarkerColor(scope.panel, average);
+                                        var markerType = scope.getMarkerSize(scope.panel, average);
+                                        var r = scope.hexToRgb(clusterColor).r
+                                          , 
+                                        g = scope.hexToRgb(clusterColor).g
+                                          , 
+                                        b = scope.hexToRgb(clusterColor).b;
+                                        var isMarkerSizeEnabled = scope.panel.viz_type == 'cluster_size' ? true : false;
+                                        
+                                        return isMarkerSizeEnabled ? i += markerType : "",
+                                        new L.DivIcon({
+                                            html: "<div style='background-color: rgba(" + r + ", " + g + ", " + b + ", " + 0.65 + ")'><span>" + e + "</span></div>",
+                                            className: "marker-cluster" + i,
+                                            iconSize: new L.Point(40,40),
+                                            backgroundColor: 'rgba(' + r + ', ' + g + ', ' + b + ', ' + 0.6 + ')'
+                                        })
+                                    }
+                                });
+                                /* Adding blip */
+                                var options = {
+                                    lng: function(d) {
+                                        return d[0];
+                                    },
+                                    lat: function(d) {
+                                        return d[1];
+                                    },
+                                    duration: 2000
+                                };
+                                
+                                var pingLayer = L.pingLayer(options).addTo(map);
+                                pingLayer.radiusScale().range([2, 12]);
+                                pingLayer.opacityScale().range([1, 0]);
+                                // This makes the difference
+                                scope.pingLayer = pingLayer;
+                                
+                                scope.poll_for_data();
+                                //should be called every few(equal to duration of animation/poll duration) seconds 
+                                /* Blip End */
+                            } else {
+                                layerGroup.clearLayers();
                             }
-                            function OpenInNewTab(url) {
-                                var win = window.open(url, '_blank');
-                                win.focus();
+                            
+                            loadMarkers(scope);
+                            
+                            layerGroup.addLayers(markerList);
+                            
+                            layerGroup.addTo(map);
+                            
+                            function loadMarkers(scope) {
+                                _.each(scope.data, function(p) {
+                                    var icon = L.MakiMarkers.icon({
+                                        icon: "circle",
+                                        color: p.color,
+                                        size: p.size
+                                    });
+                                    /*var greenIcon = L.icon({
+                                        iconUrl: 'img/marker/red.png',
+                                        iconSize: [16, 16],
+                                        iconAnchor: [8, 8],
+                                    });*/
+                                    var myMarker = L.marker(p.coordinates, {
+                                        icon: icon,
+                                        alt: p.popup[scope.panel.parameter][0] !== undefined ? p.popup[scope.panel.parameter][0] : ""
+                                    });
+                                    var popupHtml = '<div class="custom-popup"><table>';
+                                    for (var key in p.popup) {
+                                        popupHtml += '<tr><td>' + capitalizeFirstLetter(key) + '</td><td>' + capitalizeFirstLetter(p.popup[key]) + '</tr>';
+                                    }
+                                    popupHtml += '<tr><td><div><div></td><td><div style="color: blue;text-decoration: underline;">More Details<div></td></tr>';
+                                    popupHtml += '</table></div>';
+                                    myMarker.bindPopup(popupHtml);
+                                    if (!_.isUndefined(p.tooltip) && p.tooltip !== '') {
+                                        markerList.push(myMarker.bindLabel(_.isArray(p.tooltip) ? p.tooltip[0] : p.tooltip));
+                                    } else {
+                                        markerList.push(myMarker);
+                                    }
+                                    
+                                    function capitalizeFirstLetter(string) {
+                                        if (typeof string === 'string') {
+                                            return string.charAt(0).toUpperCase() + string.slice(1);
+                                        } else {
+                                            return string;
+                                        }
+                                    }
+                                }
+                                );
                             }
                         }
-                        );
-                        
-                        layerGroup.addLayers(markerList);
-                        
-                        layerGroup.addTo(map);
-                        
-                        //map.fitBounds(_.pluck(scope.data,'coordinates'));
+                    
                     }
                     );
                 }

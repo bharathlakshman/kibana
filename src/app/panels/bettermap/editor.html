@@ -39,7 +39,7 @@
         <label class="big"><input type="radio" ng-model="panel.viz_type" value="cluster_size">Cluster size</label>
         <label class="big"><input type="radio" ng-model="panel.viz_type" value="heatmap">Heatmap</label>
     </div>
-    <div class="editor-option" ng-show="panel.viz_type == 'cluster_color' || panel.viz_type == 'cluster_size'"><h7>Cluster Color Configuration: </h7>
+    <div class="editor-option" ng-show="panel.viz_type"><h7>Cluster Color Configuration: </h7>
       <label class="big">Small <input type="text" class="input-small" ng-model="panel.cc.small"> Minimum Value <input type="text" class="input-small" ng-model="panel.cc.small_range_min"> Maximum Value <input type="text" class="input-small" ng-model="panel.cc.small_range_max"></label>
       <label class="big">Medium <input type="text" class="input-small" ng-model="panel.cc.medium"> Minimum Value <input type="text" class="input-small" ng-model="panel.cc.medium_range_min"> Maximum Value <input type="text" class="input-small" ng-model="panel.cc.medium_range_max"></label>
       <label class="big">Large <input type="text" class="input-small" ng-model="panel.cc.large"> Minimum Value <input type="text" class="input-small" ng-model="panel.cc.large_range_min"> Maximum Value <input type="text" class="input-small" ng-model="panel.cc.large_range_max"></label>
