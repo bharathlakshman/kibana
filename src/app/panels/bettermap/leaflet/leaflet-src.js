@@ -3265,7 +3265,13 @@ L.Icon = L.Class.extend({
 		}
 
 		img.className = 'leaflet-marker-' + name + ' ' + options.className;
-
+		
+		/* Bharath Lakshman edit */
+		if(options.backgroundColor !== undefined) {
+			img.style.backgroundColor = options.backgroundColor;	
+		}
+		/* Bharath Lakshman edit */
+		
 		if (anchor) {
 			img.style.marginLeft = (-anchor.x) + 'px';
 			img.style.marginTop  = (-anchor.y) + 'px';

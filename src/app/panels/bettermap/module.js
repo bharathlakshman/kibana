@@ -113,6 +113,42 @@ function(angular, app, _, L, localRequire, kbn) {
         $scope.random = function (min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
+        $scope.getMarkerSize = function(panel, value) {
+                if($scope.between(value, panel.cc.small_range_min, panel.cc.small_range_max)) {
+                    return 's';
+                } else if($scope.between(value, panel.cc.medium_range_min, panel.cc.medium_range_max)) {
+                    return 'm';
+                } else if($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
+                    return 'l';
+                }
+        }
+        $scope.getMarkerColor = function(panel, value) {
+                if($scope.between(value, panel.cc.small_range_min, panel.cc.small_range_max)) {
+                   return panel.cc.small;
+                } else if($scope.between(value, panel.cc.medium_range_min, panel.cc.medium_range_max)) {
+                    return panel.cc.medium;
+                } else if($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
+                    return panel.cc.large;
+                }
+        }
+        $scope.between = function(x, min, max) {
+                return x >= min && x <= max;
+        }
+        $scope.setupMarkerColor = function(panel) {
+                var element = document.querySelectorAll(".marker-cluster-s");
+                var r, g, b;
+                for (var i = 0; i < element.length; i++) {
+                        element[i].style.backgroundcolor = 'rgba(' + 255 + ',' + 0 + ',' + 0 + ',' + 0.6 + ')';
+                }
+        }
+        $scope.hexToRgb = function(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
         
         $scope.poll_for_data = function(segment_2, query_id_2) {
             $scope.require(['./leaflet/plugins'], function() {
@@ -274,7 +310,9 @@ function(angular, app, _, L, localRequire, kbn) {
                 }
                 ;
                 fieldsArray = fieldsArray.concat(tooltipArray);
-                
+                if(!_.isUndefined($scope.panel.parameter)) {
+                    fieldsArray = fieldsArray.concat($scope.panel.parameter);
+                }
                 var request = $scope.ejs.Request().indices(dashboard.indices[_segment])
                 .query($scope.ejs.FilteredQuery(
                 boolQuery, 
@@ -314,12 +352,28 @@ function(angular, app, _, L, localRequire, kbn) {
                         $scope.data = $scope.data.slice(0, $scope.panel.size).concat(_.map(results.hits.hits, function(hit) {
                             var tooltipHTML = "";
                             for (var i = 0; i < tooltipArray.length && i < 2; i++) {
-                                tooltipHTML += hit.fields[tooltipArray[i]] + "</br>";
+                                if(!_.isUndefined(hit.fields[tooltipArray[i]])) {
+                                    tooltipHTML += hit.fields[tooltipArray[i]] + "</br>";       
+                                }
                             }
+                            var mColor = "blue", mSize = 's'; // Defaults
+                            if(!_.isUndefined($scope.panel.parameter) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
+                                    mColor = $scope.getMarkerColor($scope.panel, hit.fields[$scope.panel.parameter][0]);
+                            }
+                            
+                            if(!_.isUndefined($scope.panel.viz_type) && $scope.panel.viz_type === 'cluster_size') { // If cluster size is not set, return default size i.e small.
+                                    if(!_.isUndefined($scope.panel.parameter) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
+                                        var value = hit.fields[$scope.panel.parameter][0];
+                                        mSize = $scope.getMarkerSize($scope.panel, value);   
+                                    }
+                            }
+
                             return {
-                                coordinates: new L.LatLng(hit.fields[$scope.panel.field][1],hit.fields[$scope.panel.field][0]),
+                                coordinates: new L.LatLng(hit.fields[$scope.panel.field][0].split(',')[1], hit.fields[$scope.panel.field][0].split(',')[0]), // TODO: Flip coordinates incase of lat,lon. Currently supporting lon, lat
                                 tooltip: tooltipHTML,
-                                popup: hit.fields
+                                popup: hit.fields,
+                                color: mColor,
+                                size: mSize
                             };
                         }
                         ));
@@ -376,7 +430,7 @@ function(angular, app, _, L, localRequire, kbn) {
                     elem.css({
                         height: scope.panel.height || scope.row.height
                     });
-                    scope.require(['./leaflet/plugins', './d3/d3.v3.min', './leaflet/leaflet-d3'], function() {
+                    scope.require(['./leaflet/plugins', './leaflet/Leaflet.MakiMarkers', './d3/d3.v3.min', './leaflet/leaflet-d3'], function() {
                         scope.panelMeta.loading = false;
                         L.Icon.Default.imagePath = 'app/panels/bettermap/leaflet/images';
                         if (_.isUndefined(map)) {
@@ -388,12 +442,35 @@ function(angular, app, _, L, localRequire, kbn) {
                             
                             // This could be made configurable?
                             L.tileLayer(scope.panel.tileServerUrl, {
-                                attribution: 'OSM'/*,
-                maxZoom: 18,
-                minZoom: 1 */
+                                attribution: 'OSM'
                             }).addTo(map);
+                            if(_.isUndefined(scope.panel.clusterRadius)) {
+                                scope.panel.clusterRadius = 30;
+                            }
+
                             layerGroup = new L.MarkerClusterGroup({
-                                maxClusterRadius: 30
+                                singleMarkerMode: false, // Remove to show markers when cluster size is one
+                                maxClusterRadius: scope.panel.clusterRadius,
+                                iconCreateFunction: function (t) {
+                                    var e = t.getChildCount(), i = " marker-cluster-";
+                                    var total = 0, average = 0;
+                                    for(var index = 0; index < t.getAllChildMarkers().length; index++) {
+                                            total += t.getAllChildMarkers()[index].options.alt;
+                                    }
+                                    average = total / t.getChildCount();
+                                    var clusterColor = scope.getMarkerColor(scope.panel, average);
+                                    var markerType = scope.getMarkerSize(scope.panel, average);
+                                    var r = scope.hexToRgb(clusterColor).r,
+                                    g = scope.hexToRgb(clusterColor).g,
+                                    b = scope.hexToRgb(clusterColor).b;
+                                    return i += markerType,
+                                    new L.DivIcon({
+                                        html: "<div style='background-color: rgba(" + r + ", " + g + ", " + b + ", " + 0.7 + ")'><span>" + e + "</span></div>",
+                                        className: "marker-cluster" + i,
+                                        iconSize: new L.Point(40,40),
+                                        backgroundColor: 'rgba(' + r + ', ' + g + ', ' + b + ', ' + 0.6 + ')'
+                                    })
+                                }
                             });
                             /* Adding blip */
                             var options = {
@@ -422,13 +499,19 @@ function(angular, app, _, L, localRequire, kbn) {
                         var markerList = [];
                         
                         _.each(scope.data, function(p) {
-                            var greenIcon = L.icon({
-                                iconUrl: 'img/marker/apparel/' + scope.random(1, 13) + '.png',
-                                iconSize: [32, 37],
-                                iconAnchor: [16, 37],
+                            var icon = L.MakiMarkers.icon({
+                                icon: "circle",
+                                color: p.color,
+                                size:  p.size
                             });
+                            /*var greenIcon = L.icon({
+                                iconUrl: 'img/marker/red.png',
+                                iconSize: [16, 16],
+                                iconAnchor: [8, 8],
+                            });*/
                             var myMarker = L.marker(p.coordinates, {
-                                icon: greenIcon
+                                icon: icon,
+                                alt: p.popup[scope.panel.parameter][0] !== undefined? p.popup[scope.panel.parameter][0] : ""
                             });
                             var popupHtml = '<div class="custom-popup"><table>';
                             for (var key in p.popup) {
