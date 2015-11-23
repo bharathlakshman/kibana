@@ -3,6 +3,38 @@
   color: #333;
 }
 
+.custom-radius-padding {
+   
+}
+
+.custom-blur-padding {
+    padding-right: 18px;
+}
+
+.margin-left-small {
+    margin-left: 100px !important;
+}
+
+.custom-small {
+    padding-right: 16px;
+}
+
+.custom-medium {
+    padding-right: 0px;
+}
+
+.custom-large {
+    padding-right: 15px;
+}
+
+.radio-pad-small {
+    margin: 10px !important;
+}
+
+.margin-right-left{
+    margin-left :50px !important;
+    margin-right :50px !important;
+}
 
 .marker-cluster-s {
     margin-left: -10px !important;

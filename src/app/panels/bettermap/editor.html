@@ -30,23 +30,23 @@
 
 <div class="editor-row">
   <div class="section">
-    <h5>Visualization Type Section</h5>
+    <h3>Visualization Type Section</h3>
     <div class="editor-option">
       
-      <h6>Visualization Parameter</h6>
-      <input  bs-typeahead="fields.list" type="text" class="input-small" ng-model="panel.parameter">
-        <label class="big"><input type="radio" ng-model="panel.viz_type" value="cluster_color">Cluster Color</label>
-        <label class="big"><input type="radio" ng-model="panel.viz_type" value="cluster_size">Cluster size</label>
-        <label class="big"><input type="radio" ng-model="panel.viz_type" value="heatmap">Heatmap</label>
+      <h4>Visualization Parameter</h4>
+        <input  bs-typeahead="fields.list" type="text" class="input-small" ng-model="panel.parameter">
+        <label class="big"><input class="radio-pad-small" type="radio" ng-model="panel.viz_type" value="cluster_color">Cluster Color</label>
+        <label class="big"><input class="radio-pad-small" type="radio" ng-model="panel.viz_type" value="cluster_size">Cluster size</label>
+        <label class="big"><input class="radio-pad-small" type="radio" ng-model="panel.viz_type" value="heatmap">Heatmap</label>
     </div>
-    <div class="editor-option" ng-show="panel.viz_type"><h7>Cluster Color Configuration: </h7>
-      <label class="big">Small <input type="text" class="input-small" ng-model="panel.cc.small"> Minimum Value <input type="text" class="input-small" ng-model="panel.cc.small_range_min"> Maximum Value <input type="text" class="input-small" ng-model="panel.cc.small_range_max"></label>
-      <label class="big">Medium <input type="text" class="input-small" ng-model="panel.cc.medium"> Minimum Value <input type="text" class="input-small" ng-model="panel.cc.medium_range_min"> Maximum Value <input type="text" class="input-small" ng-model="panel.cc.medium_range_max"></label>
-      <label class="big">Large <input type="text" class="input-small" ng-model="panel.cc.large"> Minimum Value <input type="text" class="input-small" ng-model="panel.cc.large_range_min"> Maximum Value <input type="text" class="input-small" ng-model="panel.cc.large_range_max"></label>
+    <div class="editor-option margin-left-small" ng-show="panel.viz_type"><h4>Cluster Color Configuration</h4>
+      <label class="big"><span class="custom-small">Small</span><input type="text" class="input-small margin-right-left" ng-model="panel.cc.small"> Minimum Value <input type="text" class="input-small margin-right-left" ng-model="panel.cc.small_range_min"> Maximum Value <input type="text" class="input-small margin-right-left" ng-model="panel.cc.small_range_max"></label>
+      <label class="big"><span class="custom-medium">Medium</span><input type="text" class="input-small margin-right-left" ng-model="panel.cc.medium"> Minimum Value <input type="text" class="input-small margin-right-left" ng-model="panel.cc.medium_range_min"> Maximum Value <input type="text" class="input-small margin-right-left" ng-model="panel.cc.medium_range_max"></label>
+      <label class="big"><span class="custom-large">Large</span><input type="text" class="input-small margin-right-left" ng-model="panel.cc.large"> Minimum Value <input type="text" class="input-small margin-right-left" ng-model="panel.cc.large_range_min"> Maximum Value <input type="text" class="input-small margin-right-left" ng-model="panel.cc.large_range_max"></label>
     </div>
-    <div class="editor-option" ng-show="panel.viz_type == 'heatmap'"><h7>Heatmap Configuration</h7>
-      <label class="big">Radius</label><input type="text" class="input-small" ng-model="panel.hmap.radius">
-      <label class="big">Blur</label><input type="text" class="input-small" ng-model="panel.hmap.blur">
+    <div class="editor-option" ng-show="panel.viz_type == 'heatmap'"><h4>Heatmap Configuration</h4>
+      <label class="big"><span class="custom-radius-padding">Radius</span><input type="text" class="input-small margin-right-left" ng-model="panel.hmap.radius"></label>
+      <label class="big"><span class="custom-blur-padding">Blur</span><input type="text" class="input-small margin-right-left" ng-model="panel.hmap.blur"></label>
     </div>
   </div>
 </div>
