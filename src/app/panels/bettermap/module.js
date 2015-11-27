@@ -23,6 +23,7 @@ define([
 'app', 
 'lodash', 
 './leaflet/leaflet-src', 
+'./stats/simple_statistics',
 'require', 
 'kbn', 
 
@@ -31,7 +32,7 @@ define([
 'css!./leaflet/leaflet-d3.css', 
 'css!./leaflet/plugins.css'
 ], 
-function(angular, app, _, L, localRequire, kbn) {
+function(angular, app, _, L, ss, localRequire, kbn) {
     'use strict';
     
     var module = angular.module('kibana.panels.bettermap', []);
@@ -121,6 +122,8 @@ function(angular, app, _, L, localRequire, kbn) {
                 return 'm';
             } else if ($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
                 return 'l';
+            } else { // It's out of defined range
+                return 'l';
             }
         }
         $scope.getMarkerColor = function(panel, value) {
@@ -129,6 +132,8 @@ function(angular, app, _, L, localRequire, kbn) {
             } else if ($scope.between(value, panel.cc.medium_range_min, panel.cc.medium_range_max)) {
                 return panel.cc.medium;
             } else if ($scope.between(value, panel.cc.large_range_min, panel.cc.large_range_max)) {
+                return panel.cc.large;
+            } else { // It's out of defined range
                 return panel.cc.large;
             }
         }
@@ -360,8 +365,9 @@ function(angular, app, _, L, localRequire, kbn) {
                             }
                             // Defaults
                             var mColor = "#48D1CC"
-                              , mSize = 's';
-
+                              
+                            , mSize = 's';
+                            
                             if (!_.isUndefined($scope.panel.viz_type) && $scope.panel.viz_type === 'heatmap') {
                                 // If cluster size is not set, return default size i.e small.
                                 if (!_.isUndefined($scope.panel.parameter) && !_.isUndefined(hit.fields[$scope.panel.parameter][0])) {
@@ -445,7 +451,7 @@ function(angular, app, _, L, localRequire, kbn) {
                     elem.css({
                         height: scope.panel.height || scope.row.height
                     });
-                    scope.require(['./leaflet/plugins', './leaflet/Leaflet.MakiMarkers', './d3/d3.v3.min', './leaflet/leaflet-d3', './leaflet/leaflet-heat'], function() {
+                    scope.require(['./leaflet/plugins', './leaflet/Leaflet.MakiMarkers', './d3/d3.v3.min', './leaflet/leaflet-d3', './leaflet/leaflet-heat', './stats/simple_statistics'], function() {
                         scope.panelMeta.loading = false;
                         if (scope.panel.viz_type === 'heatmap') {
                             if (_.isUndefined(map)) {
@@ -461,33 +467,40 @@ function(angular, app, _, L, localRequire, kbn) {
                                 }).addTo(map);
                                 
                                 var lowHeat = L.heatLayer([], {
-                                    radius : scope.panel.hmap.radius , // default value
-                                    blur : scope.panel.hmap.blur, // default value
-                                    gradient : JSON.parse(scope.panel.cc.small)//{0.2: 'blue', 0.3: 'lime', 0.65: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
+                                    radius: scope.panel.hmap.radius,
+                                    // default value
+                                    blur: scope.panel.hmap.blur,
+                                    // default value
+                                    gradient: JSON.parse(scope.panel.cc.small)//{0.2: 'blue', 0.3: 'lime', 0.65: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
                                 }).addTo(map);
-
+                                
                                 var mediumHeat = L.heatLayer([], {
-                                    radius : scope.panel.hmap.radius , // default value
-                                    blur : scope.panel.hmap.blur, // default value
-                                    gradient : JSON.parse(scope.panel.cc.medium)//{0.4: 'blue', 0.6: 'lime', 0.75: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
+                                    radius: scope.panel.hmap.radius,
+                                    // default value
+                                    blur: scope.panel.hmap.blur,
+                                    // default value
+                                    gradient: JSON.parse(scope.panel.cc.medium)//{0.4: 'blue', 0.6: 'lime', 0.75: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
                                 }).addTo(map);
                                 
                                 var highHeat = L.heatLayer([], {
-                                    radius : scope.panel.hmap.radius , // default value
-                                    blur : scope.panel.hmap.blur, // default value
-                                    gradient : JSON.parse(scope.panel.cc.large)//{0.6: 'blue', 0.8: 'lime', 0.95: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
+                                    radius: scope.panel.hmap.radius,
+                                    // default value
+                                    blur: scope.panel.hmap.blur,
+                                    // default value
+                                    gradient: JSON.parse(scope.panel.cc.large)//{0.6: 'blue', 0.8: 'lime', 0.95: 'yellow', 0.97: 'yellow', 1: 'red'} // Values can be set for a scale of 0-1
                                 }).addTo(map);
-
+                                
                                 _.each(scope.data, function(p) {
                                     //Check average value and add to heat map
-                                    if(p.size === 's') {
+                                    if (p.size === 's') {
                                         lowHeat.addLatLng(p.coordinates);
-                                    } else if(p.size === 'm') {
+                                    } else if (p.size === 'm') {
                                         mediumHeat.addLatLng(p.coordinates);
                                     } else {
                                         highHeat.addLatLng(p.coordinates);
                                     }
-                                });
+                                }
+                                );
                             } else {
                                 layerGroup.clearLayers();
                             }
@@ -516,19 +529,22 @@ function(angular, app, _, L, localRequire, kbn) {
                                     maxClusterRadius: scope.panel.clusterRadius,
                                     iconCreateFunction: function(t) {
                                         var e = t.getChildCount()
-                                          , i = " marker-cluster-";
-                                        var total = 0
-                                          , average = 0;
-                                        for (var index = 0; index < t.getAllChildMarkers().length; index++) {
-                                            total += t.getAllChildMarkers()[index].options.alt;
-                                        }
-                                        average = total / t.getChildCount();
-                                        var clusterColor = scope.getMarkerColor(scope.panel, average);
-                                        var markerType = scope.getMarkerSize(scope.panel, average);
+                                          
+                                        , i = " marker-cluster-";
+                                        
+                                        var stats_type = scope.panel.stats_type !== 'undefined' ? scope.panel.stats_type : "mean";
+                                        var stats_value = getStatsValue(stats_type, t);
+                                        var clusterColor = scope.getMarkerColor(scope.panel, stats_value);
+                                        var markerType = scope.getMarkerSize(scope.panel, stats_value);
+                                        
+                                        console.log(scope.hexToRgb(clusterColor));
+                                        
                                         var r = scope.hexToRgb(clusterColor).r
-                                          , 
+                                          
+                                        , 
                                         g = scope.hexToRgb(clusterColor).g
-                                          , 
+                                          
+                                        , 
                                         b = scope.hexToRgb(clusterColor).b;
                                         var isMarkerSizeEnabled = scope.panel.viz_type == 'cluster_size' ? true : false;
                                         
@@ -539,6 +555,33 @@ function(angular, app, _, L, localRequire, kbn) {
                                             iconSize: new L.Point(40,40),
                                             backgroundColor: 'rgba(' + r + ', ' + g + ', ' + b + ', ' + 0.6 + ')'
                                         })
+                                        
+                                        function getStatsValue(stats_type, cluster) {
+                                            var valueArray = getValueArrayFromCluster(cluster);
+                                            if (stats_type === 'mean') {
+                                                return ss.mean(valueArray);
+                                            } else if (stats_type === 'min') {
+                                                return ss.min(valueArray);
+                                            } else if (stats_type === 'max') {
+                                                return ss.max(valueArray);
+                                            } else if (stats_type === 'median') {
+                                                return ss.median(valueArray);
+                                            } else if (stats_type === 'harmonic mean') {
+                                                return ss.harmonicMean(valueArray);
+                                            } else if (stats_type === 'variance') {
+                                                return ss.variance(valueArray);
+                                            } else if (stats_type === 'standard deviation') {
+                                                return ss.standardDeviation(valueArray);
+                                            }
+                                        }
+                                        function getValueArrayFromCluster(cluster) {
+                                            var valueArray = [];
+                                            for (var index = 0; index < cluster.getAllChildMarkers().length; index++) {
+                                                var value = cluster.getAllChildMarkers()[index].options.alt;
+                                                valueArray.push(value);
+                                            }
+                                            return valueArray;
+                                        }
                                     }
                                 });
                                 /* Adding blip */
@@ -578,11 +621,7 @@ function(angular, app, _, L, localRequire, kbn) {
                                         color: p.color,
                                         size: p.size
                                     });
-                                    /*var greenIcon = L.icon({
-                                        iconUrl: 'img/marker/red.png',
-                                        iconSize: [16, 16],
-                                        iconAnchor: [8, 8],
-                                    });*/
+                                    
                                     var myMarker = L.marker(p.coordinates, {
                                         icon: icon,
                                         alt: p.popup[scope.panel.parameter][0] !== undefined ? p.popup[scope.panel.parameter][0] : ""

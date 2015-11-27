@@ -23,8 +23,14 @@
   <div class="editor-option">
     <form>
       <h6>Cluster Radius</h6>
-      <input type="text" class="input-small" ng-model="panel.clusterRadius">
+      <input type="text" ng-disabled="panel.viz_type == 'heatmap'" class="input-small" ng-model="panel.clusterRadius">
     </form>
+  </div>
+  <div class="editor-option">
+      <form>
+        <h6>Cluster Radius</h6>
+        <select class="input-small" ng-disabled="panel.viz_type == 'heatmap'" ng-model="panel.stats_type" ng-options="f for f in ['min', 'max', 'mean', 'median', 'harmonic mean', 'variance', 'standard deviation']"></select></span>
+      </form>
   </div>
 </div>
 
